@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REI Nationwide - Team Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); }
+        .card { backdrop-filter: blur(10px); background: rgba(255,255,255,0.05); }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+        .btn-primary:hover { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- App Container -->
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
+            <div class="card rounded-2xl p-8 w-full max-w-md border border-white/10">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold mb-2">🏠 REI Nationwide</h1>
+                    <p class="text-gray-400">Team Operations Portal</p>
+                </div>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Email</label>
+                        <input type="email" id="login-email" required
+                               class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Password</label>
+                        <input type="password" id="login-password" required
+                               class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-blue-500">
+                    </div>
+                    <button type="submit" class="w-full btn-primary py-3 rounded-lg font-semibold transition">
+                        Sign In
+                    </button>
+                    <p id="login-error" class="text-red-400 text-sm text-center hidden"></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard (hidden by default) -->
+        <div id="dashboard-screen" class="hidden">
+            <!-- Sidebar -->
+            <aside class="fixed left-0 top-0 h-full w-64 bg-black/30 border-r border-white/10 p-4">
+                <div class="mb-8">
+                    <h1 class="text-xl font-bold">🏠 REI Nationwide</h1>
+                    <p class="text-sm text-gray-400">Operations Portal</p>
+                </div>
+                
+                <nav class="space-y-2">
+                    <button onclick="showSection('dashboard')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 flex items-center gap-3" data-section="dashboard">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+                    </button>
+                    <button onclick="showSection('search')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 flex items-center gap-3" data-section="search">
+                        <i data-lucide="search" class="w-5 h-5"></i> Property Search
+                    </button>
+                    <button onclick="showSection('buyers')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 flex items-center gap-3" data-section="buyers">
+                        <i data-lucide="users" class="w-5 h-5"></i> Cash Buyers
+                    </button>
+                    <button onclick="showSection('skip-trace')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 flex items-center gap-3" data-section="skip-trace">
+                        <i data-lucide="phone" class="w-5 h-5"></i> Skip Trace
+                    </button>
+                    <button onclick="showSection('ai')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 flex items-center gap-3" data-section="ai">
+                        <i data-lucide="bot" class="w-5 h-5"></i> AI Assistant
+                    </button>
+                    <button onclick="showSection('activity')" class="nav-btn w-full text-left px-4 py-3 rounded-lg hover:bg-white/10 flex items-center gap-3" data-section="activity">
+                        <i data-lucide="activity" class="w-5 h-5"></i> Activity Log
+                    </button>
+                </nav>
+
+                <div class="absolute bottom-4 left-4 right-4">
+                    <div class="card p-4 rounded-lg border border-white/10">
+                        <p class="text-sm text-gray-400">Logged in as</p>
+                        <p id="user-name" class="font-semibold">-</p>
+                        <p id="user-role" class="text-xs text-blue-400">-</p>
+                    </div>
+                    <button onclick="logout()" class="w-full mt-2 px-4 py-2 text-red-400 hover:bg-red-500/10 rounded-lg text-sm">
+                        Sign Out
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="ml-64 p-8">
+                <!-- Dashboard Section -->
+                <section id="section-dashboard" class="section">
+                    <h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="card p-6 rounded-xl border border-white/10">
+                            <p class="text-gray-400 text-sm mb-1">Today's Searches</p>
+                            <p id="stat-searches" class="text-3xl font-bold">-</p>
+                        </div>
+                        <div class="card p-6 rounded-xl border border-white/10">
+                            <p class="text-gray-400 text-sm mb-1">Skip Traces</p>
+                            <p id="stat-skips" class="text-3xl font-bold">-</p>
+                        </div>
+                        <div class="card p-6 rounded-xl border border-white/10">
+                            <p class="text-gray-400 text-sm mb-1">AI Queries</p>
+                            <p id="stat-queries" class="text-3xl font-bold">-</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6 rounded-xl border border-white/10">
+                        <h3 class="font-semibold mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <button onclick="showSection('search')" class="btn-primary p-4 rounded-lg text-center">
+                                <i data-lucide="search" class="w-6 h-6 mx-auto mb-2"></i>
+                                Search Leads
+                            </button>
+                            <button onclick="showSection('buyers')" class="btn-primary p-4 rounded-lg text-center">
+                                <i data-lucide="users" class="w-6 h-6 mx-auto mb-2"></i>
+                                Find Buyers
+                            </button>
+                            <button onclick="showSection('skip-trace')" class="btn-primary p-4 rounded-lg text-center">
+                                <i data-lucide="phone" class="w-6 h-6 mx-auto mb-2"></i>
+                                Skip Trace
+                            </button>
+                            <button onclick="showSection('ai')" class="btn-primary p-4 rounded-lg text-center">
+                                <i data-lucide="bot" class="w-6 h-6 mx-auto mb-2"></i>
+                                Ask AI
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Property Search Section -->
+                <section id="section-search" class="section hidden">
+                    <h2 class="text-2xl font-bold mb-6">Property Search</h2>
+                    <div class="card p-6 rounded-xl border border-white/10 mb-6">
+                        <form id="search-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <input type="text" id="search-city" placeholder="City" required
+                                   class="px-4 py-3 bg-white/5 border border-white/10 rounded-lg">
+                            <input type="text" id="search-state" placeholder="State (TX)" value="TX"
+                                   class="px-4 py-3 bg-white/5 border border-white/10 rounded-lg">
+                            <input type="number" id="search-equity" placeholder="Min Equity %" value="40"
+                                   class="px-4 py-3 bg-white/5 border border-white/10 rounded-lg">
+                            <button type="submit" class="btn-primary py-3 rounded-lg font-semibold">
+                                Search
+                            </button>
+                        </form>
+                    </div>
+                    <div id="search-results" class="space-y-4"></div>
+                </section>
+
+                <!-- Buyers Section -->
+                <section id="section-buyers" class="section hidden">
+                    <h2 class="text-2xl font-bold mb-6">Cash Buyer Search</h2>
+                    <div class="card p-6 rounded-xl border border-white/10 mb-6">
+                        <form id="buyers-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="text" id="buyers-city" placeholder="City" required
+                                   class="px-4 py-3 bg-white/5 border border-white/10 rounded-lg">
+                            <input type="text" id="buyers-state" placeholder="State (TX)" value="TX"
+                                   class="px-4 py-3 bg-white/5 border border-white/10 rounded-lg">
+                            <button type="submit" class="btn-primary py-3 rounded-lg font-semibold">
+                                Find Buyers
+                            </button>
+                        </form>
+                    </div>
+                    <div id="buyers-results" class="space-y-4"></div>
+                </section>
+
+                <!-- Skip Trace Section -->
+                <section id="section-skip-trace" class="section hidden">
+                    <h2 class="text-2xl font-bold mb-6">Skip Trace</h2>
+                    <div class="card p-6 rounded-xl border border-white/10 mb-6">
+                        <form id="skip-form" class="flex gap-4">
+                            <input type="text" id="skip-address" placeholder="Full property address" required
+                                   class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg">
+                            <button type="submit" class="btn-primary px-8 py-3 rounded-lg font-semibold">
+                                Skip Trace
+                            </button>
+                        </form>
+                    </div>
+                    <div id="skip-results"></div>
+                </section>
+
+                <!-- AI Assistant Section -->
+                <section id="section-ai" class="section hidden">
+                    <h2 class="text-2xl font-bold mb-6">AI Assistant</h2>
+                    <div class="card p-6 rounded-xl border border-white/10 mb-6">
+                        <form id="ai-form" class="flex gap-4">
+                            <input type="text" id="ai-query" placeholder="Ask anything about real estate investing..." required
+                                   class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg">
+                            <button type="submit" class="btn-primary px-8 py-3 rounded-lg font-semibold">
+                                Ask
+                            </button>
+                        </form>
+                    </div>
+                    <div id="ai-results" class="card p-6 rounded-xl border border-white/10">
+                        <p class="text-gray-400">Ask the AI anything about deals, strategy, or market analysis.</p>
+                    </div>
+                </section>
+
+                <!-- Activity Log Section -->
+                <section id="section-activity" class="section hidden">
+                    <h2 class="text-2xl font-bold mb-6">Activity Log</h2>
+                    <div id="activity-log" class="space-y-2"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // Configuration
+        // ============================================================================
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8000' 
+            : 'https://rei-nationwide-api.onrender.com'; // Update with your Render URL
+
+        let authToken = localStorage.getItem('rei_token');
+        let currentUser = null;
+
+        // ============================================================================
+        // API Client
+        // ============================================================================
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+            const options = { method, headers };
+            if (data) options.body = JSON.stringify(data);
+
+            try {
+                const resp = await fetch(`${API_URL}${endpoint}`, options);
+                if (resp.status === 401) {
+                    logout();
+                    throw new Error('Session expired');
+                }
+                return await resp.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // ============================================================================
+        // Auth Functions
+        // ============================================================================
+        async function login(email, password) {
+            const result = await apiCall('/api/v1/auth/login', 'POST', { email, password });
+            if (result.access_token) {
+                authToken = result.access_token;
+                currentUser = result.user;
+                localStorage.setItem('rei_token', authToken);
+                showDashboard();
+            } else {
+                throw new Error(result.detail || 'Login failed');
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('rei_token');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+        }
+
+        async function checkAuth() {
+            if (!authToken) return false;
+            try {
+                currentUser = await apiCall('/api/v1/auth/me');
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        // ============================================================================
+        // UI Functions
+        // ============================================================================
+        function showDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            document.getElementById('user-name').textContent = currentUser?.name || 'User';
+            document.getElementById('user-role').textContent = currentUser?.role || 'member';
+            lucide.createIcons();
+            showSection('dashboard');
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`section-${section}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white/10');
+                if (btn.dataset.section === section) btn.classList.add('bg-white/10');
+            });
+
+            // Load data for certain sections
+            if (section === 'activity') loadActivity();
+        }
+
+        function showLoading(container) {
+            container.innerHTML = '<div class="text-center py-8 text-gray-400">Loading...</div>';
+        }
+
+        function formatCurrency(n) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+        }
+
+        // ============================================================================
+        // Property Search
+        // ============================================================================
+        async function searchProperties(city, state, minEquity) {
+            const results = document.getElementById('search-results');
+            showLoading(results);
+
+            try {
+                const data = await apiCall('/api/v1/properties/search', 'POST', {
+                    city, state, min_equity: parseInt(minEquity), absentee_only: true, max_results: 10
+                });
+
+                if (!data.data?.length) {
+                    results.innerHTML = '<div class="card p-6 rounded-xl border border-white/10 text-gray-400">No properties found</div>';
+                    return;
+                }
+
+                results.innerHTML = data.data.map(p => {
+                    const addr = p.address || {};
+                    return `
+                        <div class="card p-6 rounded-xl border border-white/10">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-semibold">${addr.street || 'Unknown'}</h3>
+                                    <p class="text-gray-400">${addr.city}, ${addr.state} ${addr.zip || ''}</p>
+                                </div>
+                                <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm">
+                                    ${p.equity_percent || 0}% Equity
+                                </span>
+                            </div>
+                            <div class="mt-4 grid grid-cols-4 gap-4 text-sm">
+                                <div><span class="text-gray-400">Value:</span> ${formatCurrency(p.estimated_value || 0)}</div>
+                                <div><span class="text-gray-400">Built:</span> ${p.year_built || 'N/A'}</div>
+                                <div><span class="text-gray-400">Beds:</span> ${p.bedrooms || 'N/A'}</div>
+                                <div><span class="text-gray-400">SqFt:</span> ${(p.square_feet || 0).toLocaleString()}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                results.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+
+        // ============================================================================
+        // Buyer Search
+        // ============================================================================
+        async function searchBuyers(city, state) {
+            const results = document.getElementById('buyers-results');
+            showLoading(results);
+
+            try {
+                const data = await apiCall('/api/v1/buyers/search', 'POST', { city, state, min_purchases: 2 });
+
+                if (!data.buyers?.length) {
+                    results.innerHTML = '<div class="card p-6 rounded-xl border border-white/10 text-gray-400">No buyers found</div>';
+                    return;
+                }
+
+                results.innerHTML = data.buyers.map(b => `
+                    <div class="card p-6 rounded-xl border border-white/10">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-semibold">${b.name}</h3>
+                                <p class="text-gray-400">${b.purchase_count} purchases in last 12 months</p>
+                            </div>
+                            <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">
+                                Portfolio Buyer
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                results.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+
+        // ============================================================================
+        // Skip Trace
+        // ============================================================================
+        async function skipTrace(address) {
+            const results = document.getElementById('skip-results');
+            showLoading(results);
+
+            try {
+                const data = await apiCall('/api/v1/skip-trace', 'POST', { address });
+
+                if (data.error) {
+                    results.innerHTML = `<div class="card p-6 rounded-xl border border-red-500/30 text-red-400">${data.error}</div>`;
+                    return;
+                }
+
+                const info = data.data || {};
+                results.innerHTML = `
+                    <div class="card p-6 rounded-xl border border-white/10">
+                        <h3 class="font-semibold mb-4">Skip Trace Results</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-gray-400 text-sm">Owner Name</p>
+                                <p class="font-semibold">${info.name || 'Unknown'}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-sm">Phone Numbers</p>
+                                <p class="font-semibold">${(info.phones || []).join(', ') || 'None found'}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-sm">Email Addresses</p>
+                                <p class="font-semibold">${(info.emails || []).join(', ') || 'None found'}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-sm">Mailing Address</p>
+                                <p class="font-semibold">${info.mailing_address || 'Same as property'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                results.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+
+        // ============================================================================
+        // AI Query
+        // ============================================================================
+        async function askAI(query) {
+            const results = document.getElementById('ai-results');
+            results.innerHTML = '<div class="text-gray-400">Thinking...</div>';
+
+            try {
+                const data = await apiCall('/api/v1/ai/query', 'POST', { query });
+                results.innerHTML = `
+                    <div class="prose prose-invert max-w-none">
+                        <p class="text-gray-400 text-sm mb-2">Q: ${query}</p>
+                        <div class="whitespace-pre-wrap">${data.response || 'No response'}</div>
+                    </div>
+                `;
+            } catch (error) {
+                results.innerHTML = `<div class="text-red-400">Error: ${error.message}</div>`;
+            }
+        }
+
+        // ============================================================================
+        // Activity Log
+        // ============================================================================
+        async function loadActivity() {
+            const log = document.getElementById('activity-log');
+            showLoading(log);
+
+            try {
+                const data = await apiCall('/api/v1/admin/activity?limit=50');
+                
+                if (!data.activity?.length) {
+                    log.innerHTML = '<div class="text-gray-400">No activity yet</div>';
+                    return;
+                }
+
+                log.innerHTML = data.activity.map(a => `
+                    <div class="card p-4 rounded-lg border border-white/10 flex justify-between items-center">
+                        <div>
+                            <span class="font-semibold">${a.user_name || 'Unknown'}</span>
+                            <span class="text-gray-400 mx-2">→</span>
+                            <span class="text-blue-400">${a.action}</span>
+                            ${a.details ? `<span class="text-gray-500 ml-2">${a.details}</span>` : ''}
+                        </div>
+                        <span class="text-gray-500 text-sm">${new Date(a.timestamp).toLocaleString()}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                log.innerHTML = `<div class="text-red-400">Error loading activity</div>`;
+            }
+        }
+
+        // ============================================================================
+        // Event Listeners
+        // ============================================================================
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const error = document.getElementById('login-error');
+            
+            try {
+                error.classList.add('hidden');
+                await login(email, password);
+            } catch (err) {
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('search-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            searchProperties(
+                document.getElementById('search-city').value,
+                document.getElementById('search-state').value,
+                document.getElementById('search-equity').value
+            );
+        });
+
+        document.getElementById('buyers-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            searchBuyers(
+                document.getElementById('buyers-city').value,
+                document.getElementById('buyers-state').value
+            );
+        });
+
+        document.getElementById('skip-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            skipTrace(document.getElementById('skip-address').value);
+        });
+
+        document.getElementById('ai-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            askAI(document.getElementById('ai-query').value);
+        });
+
+        // ============================================================================
+        // Initialize
+        // ============================================================================
+        (async function init() {
+            if (await checkAuth()) {
+                showDashboard();
+            }
+            lucide.createIcons();
+        })();
+    </script>
+</body>
+</html>

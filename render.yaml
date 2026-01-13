@@ -1,0 +1,50 @@
+# REI Nationwide - Render.com Blueprint
+# ======================================
+# Deploy with: Connect GitHub repo to Render
+
+services:
+  # Main API Server
+  - type: web
+    name: rei-nationwide-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: REALESTATE_API_KEY
+        sync: false
+      - key: BRAVE_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: XAI_API_KEY
+        sync: false
+      - key: SLACK_BOT_TOKEN
+        sync: false
+      - key: SLACK_SIGNING_SECRET
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: /data/rei_platform.db
+    disk:
+      name: rei-data
+      mountPath: /data
+      sizeGB: 1
+    healthCheckPath: /health
+    
+  # Static Dashboard (optional - can also serve from API)
+  - type: web
+    name: rei-dashboard
+    runtime: static
+    buildCommand: echo "No build needed"
+    staticPublishPath: ./dashboard
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
